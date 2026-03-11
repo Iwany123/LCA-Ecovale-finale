@@ -1,59 +1,56 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Building2, 
   Leaf, 
   Zap, 
   Coins, 
   Truck, 
-  Hammer, 
   Recycle, 
   AlertTriangle, 
   CheckCircle2, 
   Info,
   ChevronRight,
   RefreshCcw,
-  Trophy,
   Globe,
-  Wind
+  Wind,
+  HardHat,
+  Factory
 } from 'lucide-react';
 
 const STAGES = {
   START: 'START',
-  DESIGN: 'DESIGN',
+  PRODUCT: 'PRODUCT',
   CONSTRUCTION: 'CONSTRUCTION',
-  OPERATION: 'OPERATION',
+  OPERATIONAL: 'OPERATIONAL',
   END_OF_LIFE: 'END_OF_LIFE',
   RESULTS: 'RESULTS'
 };
 
 const OPTIONS = {
-  DESIGN: [
+  PRODUCT: [
     {
       id: 'concrete',
-      name: 'Reinforced Concrete',
-      description: 'Standard urban high-rise material. High A1-A3 embodied carbon due to cement chemical reactions.',
+      name: 'High-Strength Concrete',
+      description: 'Standard urban high-rise material. Extremely high A1-A3 carbon due to cement calcination.',
       cost: 150000,
-      embodied: 500000,
-      opsFactor: 1.0,
-      icon: '🏗️'
+      embodied: 520000,
+      icon: <Building2 className="text-gray-400" />
     },
     {
       id: 'steel',
-      name: 'High-Recycle Steel',
-      description: 'Durable and slender, saving urban floor space. Moderate embodied carbon; high reuse potential.',
-      cost: 250000,
-      embodied: 220000,
-      opsFactor: 0.95,
-      icon: '🏙️'
+      name: 'Recycled Arc-Furnace Steel',
+      description: 'Lower impact than virgin steel. Excellent structural efficiency for dense city plots.',
+      cost: 280000,
+      embodied: 240000,
+      icon: <Factory className="text-blue-400" />
     },
     {
-      id: 'timber',
+      id: 'clt',
       name: 'Cross-Laminated Timber',
-      description: 'Biogenic carbon storage. Sequesters carbon (Negative A1-A3) but requires expensive fireproofing.',
-      cost: 420000,
-      embodied: -60000,
-      opsFactor: 0.85,
-      icon: '🌲'
+      description: 'Biogenic carbon storage. Acts as a carbon sink (negative A1-A3), but higher upfront cost.',
+      cost: 450000,
+      embodied: -85000,
+      icon: <Leaf className="text-emerald-500" />
     }
   ],
   CONSTRUCTION: [
@@ -63,51 +60,51 @@ const OPTIONS = {
       description: 'Materials shipped via sea and heavy truck (A4). Standard site waste (A5).',
       cost: 50000,
       embodied: 45000,
-      icon: '🚢'
+      icon: <Truck className="text-orange-400" />
     },
     {
-      id: 'electric',
-      name: 'Low-Impact Logistics',
-      description: 'Local sourcing (A4) and electric site equipment (A5). Reduces urban noise and NO2.',
-      cost: 130000,
-      embodied: 8000,
-      icon: '🔋'
+      id: 'local',
+      name: 'Local Urban Logistics',
+      description: 'Materials sourced within 100 miles. Electric site cranes and zero-waste protocol.',
+      cost: 135000,
+      embodied: 6500,
+      icon: <HardHat className="text-yellow-500" />
     }
   ],
-  OPERATION: [
+  OPERATIONAL: [
     {
-      id: 'basic',
-      name: 'Standard Envelope',
-      description: 'Basic insulation. High Stage B6 (Operational Energy) carbon footprint over 60 years.',
-      cost: 30000,
-      opsAnnual: 18000,
-      icon: '🏢'
+      id: 'standard_env',
+      name: 'Code-Compliant Envelope',
+      description: 'Basic double glazing. High B6 (Operational Energy) footprint over a 60-year lifespan.',
+      cost: 40000,
+      opsAnnual: 22000,
+      icon: <Wind className="text-blue-300" />
     },
     {
       id: 'passive',
-      name: 'Net-Zero Design',
-      description: 'High-performance facade and heat recovery. Drastically cuts Stage B6 energy use.',
-      cost: 200000,
-      opsAnnual: 1500,
-      icon: '🌿'
+      name: 'Passive House Plus',
+      description: 'Triple glazing, airtight seals, and PV solar integration. Minimal B6 grid dependency.',
+      cost: 220000,
+      opsAnnual: 1800,
+      icon: <Zap className="text-yellow-400" />
     }
   ],
   END_OF_LIFE: [
     {
-      id: 'demo',
+      id: 'demolition',
       name: 'Linear Demolition',
-      description: 'Stage C1-C4: Landfill disposal. All embodied carbon is "lost" to the grave.',
-      cost: 15000,
+      description: 'Stage C: Wrecking ball approach. All materials sent to landfill. No recovery credit.',
+      cost: 20000,
       recovery: 0,
-      icon: '🚜'
+      icon: <AlertTriangle className="text-red-500" />
     },
     {
       id: 'disassembly',
-      name: 'Circular Deconstruction',
-      description: 'Stage D: Design for Disassembly allows 85% material recovery for future urban cycles.',
-      cost: 75000,
+      name: 'Design for Disassembly',
+      description: 'Stage D: Systematic deconstruction. High material recovery for the next urban cycle.',
+      cost: 85000,
       recovery: 0.85,
-      icon: '🔄'
+      icon: <Recycle className="text-emerald-400" />
     }
   ]
 };
@@ -118,9 +115,9 @@ const App = () => {
   const [embodiedCarbon, setEmbodiedCarbon] = useState(0);
   const [opsCarbonAnnual, setOpsCarbonAnnual] = useState(0);
   const [choices, setChoices] = useState({});
-  const [log, setLog] = useState(["City permits granted. Begin your LCA assessment."]);
+  const [log, setLog] = useState(["LCA Protocol Initiated."]);
 
-  const addLog = (msg) => setLog(prev => [msg, ...prev].slice(0, 5));
+  const addLog = (msg) => setLog(prev => [msg, ...prev].slice(0, 4));
 
   const handleChoice = (category, choice) => {
     setChoices(prev => ({ ...prev, [category]: choice }));
@@ -128,174 +125,162 @@ const App = () => {
     setEmbodiedCarbon(prev => prev + (choice.embodied || 0));
     if (choice.opsAnnual) setOpsCarbonAnnual(choice.opsAnnual);
     
-    addLog(`Phase ${category}: Selected ${choice.name}.`);
+    addLog(`${category} Phase: ${choice.name} confirmed.`);
     
-    if (category === 'DESIGN') setStage(STAGES.CONSTRUCTION);
-    if (category === 'CONSTRUCTION') setStage(STAGES.OPERATION);
-    if (category === 'OPERATION') setStage(STAGES.END_OF_LIFE);
+    if (category === 'PRODUCT') setStage(STAGES.CONSTRUCTION);
+    if (category === 'CONSTRUCTION') setStage(STAGES.OPERATIONAL);
+    if (category === 'OPERATIONAL') setStage(STAGES.END_OF_LIFE);
     if (category === 'END_OF_LIFE') setStage(STAGES.RESULTS);
   };
 
   const totalCarbon = useMemo(() => {
-    const lifecycleYears = 60;
-    const totalOps = opsCarbonAnnual * lifecycleYears;
+    const lifespan = 60;
+    const totalOps = opsCarbonAnnual * lifespan;
     let total = embodiedCarbon + totalOps;
-    if (choices.END_OF_LIFE?.recovery) {
-      // Circularity credits for Phase D
-      total -= (embodiedCarbon * choices.END_OF_LIFE.recovery * 0.5);
+    
+    // Module D Credits: Recovery reduces total lifecycle impact
+    if (choices.END_OF_LIFE?.recovery > 0) {
+      const recoveryCredit = embodiedCarbon * choices.END_OF_LIFE.recovery * 0.4;
+      total -= recoveryCredit;
     }
     return Math.round(total);
   }, [embodiedCarbon, opsCarbonAnnual, choices]);
 
   const getRank = () => {
-    if (totalCarbon < 150000) return { title: 'LCA Master Architect', color: 'text-emerald-400', medal: '🏆', desc: 'A beacon of circular urban design.' };
-    if (totalCarbon < 600000) return { title: 'Green Urbanist', color: 'text-blue-400', medal: '🥈', desc: 'Balanced performance with urban reality.' };
-    return { title: 'Standard Developer', color: 'text-orange-400', medal: '🥉', desc: 'Significant carbon debt left for the city.' };
+    if (totalCarbon < 120000) return { title: 'Net-Zero Visionary', color: 'text-emerald-400', medal: '💎' };
+    if (totalCarbon < 550000) return { title: 'Sustainable Architect', color: 'text-blue-400', medal: '🥇' };
+    if (totalCarbon < 1000000) return { title: 'Urban Developer', color: 'text-yellow-500', medal: '🥈' };
+    return { title: 'Legacy Builder', color: 'text-orange-500', medal: '🥉' };
   };
 
-  const restart = () => {
+  const reset = () => {
     setStage(STAGES.START);
     setBudget(1000000);
     setEmbodiedCarbon(0);
     setOpsCarbonAnnual(0);
     setChoices({});
-    setLog(["Consulting the city masterplan..."]);
+    setLog(["Consulting Urban Masterplan..."]);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-10 font-sans selection:bg-blue-500/30">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0f172a] text-slate-100 p-4 font-sans selection:bg-emerald-500/30">
+      <div className="max-w-6xl mx-auto py-8">
         
-        {/* Top Navigation / Progress */}
-        <div className="flex justify-between items-center mb-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-          <div className="flex gap-4">
-            {Object.keys(STAGES).slice(1, -1).map((s, i) => (
-              <span key={s} className={stage === s ? "text-blue-400 underline underline-offset-8" : ""}>
-                {i + 1}. {s}
-              </span>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <Globe size={14} className="text-blue-500"/> Global Warming Potential (GWP) Focus
-          </div>
-        </div>
-
-        {/* Stats Header */}
+        {/* Top HUD */}
         <header className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="md:col-span-1 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <h1 className="text-xl font-black text-white flex items-center gap-2 mb-1">
-              <Building2 className="text-blue-500" size={20}/> LCA QUEST
+          <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl">
+            <h1 className="text-xl font-black flex items-center gap-2 text-white">
+              <Globe className="text-emerald-500" size={24}/> LCA QUEST
             </h1>
-            <p className="text-slate-500 text-[10px] uppercase font-bold">Urban Architect Sim</p>
+            <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">The Urban Architect</p>
           </div>
-          
-          <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-center">
-            <span className="text-slate-500 text-[10px] uppercase font-bold mb-1 flex items-center gap-1">
-              <Coins size={10}/> Capital Budget
-            </span>
-            <span className={`text-xl font-mono font-bold ${budget < 100000 ? 'text-red-400' : 'text-emerald-400'}`}>
+
+          <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl">
+            <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1 mb-1">
+              <Coins size={12}/> Project Capital
+            </div>
+            <div className={`text-xl font-mono font-bold ${budget < 100000 ? 'text-red-400' : 'text-emerald-400'}`}>
               ${budget.toLocaleString()}
-            </span>
+            </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-center">
-            <span className="text-slate-500 text-[10px] uppercase font-bold mb-1 flex items-center gap-1">
-              <Leaf size={10}/> Cumulative GWP (A1-A5)
-            </span>
-            <span className="text-xl font-mono font-bold text-blue-400">
-              {embodiedCarbon.toLocaleString()} <span className="text-xs font-normal">kgCO₂e</span>
-            </span>
+          <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl">
+            <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1 mb-1">
+              <Leaf size={12}/> Embodied GWP (A1-A5)
+            </div>
+            <div className="text-xl font-mono font-bold text-blue-400">
+              {embodiedCarbon.toLocaleString()} <span className="text-xs">kgCO₂e</span>
+            </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-center">
-            <span className="text-slate-500 text-[10px] uppercase font-bold mb-1 flex items-center gap-1">
-              <Zap size={10}/> Op Intensity (B6)
-            </span>
-            <span className="text-xl font-mono font-bold text-yellow-500">
-              {opsCarbonAnnual.toLocaleString()} <span className="text-xs font-normal">kg/yr</span>
-            </span>
+          <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl">
+            <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1 mb-1">
+              <Zap size={12}/> Ops Intensity (B6)
+            </div>
+            <div className="text-xl font-mono font-bold text-yellow-500">
+              {opsCarbonAnnual.toLocaleString()} <span className="text-xs">kg/yr</span>
+            </div>
           </div>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
-          {/* Main Stage */}
+          {/* Main Interaction Panel */}
           <div className="lg:col-span-3">
             {stage === STAGES.START && (
-              <div className="bg-slate-900 p-12 rounded-3xl border border-slate-800 text-center space-y-8">
-                <div className="inline-flex p-5 bg-blue-500/10 rounded-full text-blue-500 mb-2">
-                  <Wind size={48} />
+              <div className="bg-slate-800/30 border border-slate-700 p-12 rounded-3xl text-center space-y-8 backdrop-blur-sm">
+                <div className="inline-flex p-6 bg-emerald-500/10 rounded-full text-emerald-500 mb-2">
+                  <Building2 size={64} />
                 </div>
-                <h2 className="text-4xl font-black text-white">The City Demands Decarbonization.</h2>
-                <p className="max-w-xl mx-auto text-slate-400 leading-relaxed italic">
-                  "As an Urban Architect, your buildings are more than shelters—they are material banks and energy consumers. Conduct a Life Cycle Assessment to ensure your legacy isn't a carbon bomb."
+                <h2 className="text-5xl font-black text-white leading-tight">Decarbonize the Skyline.</h2>
+                <p className="max-w-xl mx-auto text-slate-400 text-lg leading-relaxed italic">
+                  "Every brick you lay has a history and a future. Your mission is to design and build an urban structure with the lowest Global Warming Potential (GWP) across its 60-year lifespan."
                 </p>
                 <button 
-                  onClick={() => setStage(STAGES.DESIGN)}
-                  className="group bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-2xl font-bold transition-all flex items-center gap-3 mx-auto shadow-lg shadow-blue-900/20"
+                  onClick={() => setStage(STAGES.PRODUCT)}
+                  className="group bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-5 rounded-2xl font-bold transition-all flex items-center gap-3 mx-auto shadow-xl shadow-emerald-900/20"
                 >
-                  Initiate Design Phase <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+                  Begin Life Cycle Audit <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform"/>
                 </button>
               </div>
             )}
 
-            {(stage === STAGES.DESIGN || stage === STAGES.CONSTRUCTION || stage === STAGES.OPERATION || stage === STAGES.END_OF_LIFE) && (
-              <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-3xl font-black text-white tracking-tight">
-                    {stage === STAGES.DESIGN && "Material Inventory (A1-A3)"}
+            {[STAGES.PRODUCT, STAGES.CONSTRUCTION, STAGES.OPERATIONAL, STAGES.END_OF_LIFE].includes(stage) && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex flex-col gap-2">
+                  <span className="text-emerald-500 font-black text-xs uppercase tracking-[0.2em]">
+                    Phase {Object.keys(STAGES).indexOf(stage)} of 4
+                  </span>
+                  <h2 className="text-4xl font-black text-white">
+                    {stage === STAGES.PRODUCT && "Product Selection (A1-A3)"}
                     {stage === STAGES.CONSTRUCTION && "Construction Process (A4-A5)"}
-                    {stage === STAGES.OPERATION && "Use Stage Performance (B6)"}
-                    {stage === STAGES.END_OF_LIFE && "End-of-Life Scenario (C1-C4 & D)"}
+                    {stage === STAGES.OPERATIONAL && "Operational Efficiency (B6)"}
+                    {stage === STAGES.END_OF_LIFE && "End of Life / Module D"}
                   </h2>
-                  <p className="text-slate-500 text-sm">
-                    {stage === STAGES.DESIGN && "Select the structural core. Embodied carbon starts here."}
-                    {stage === STAGES.CONSTRUCTION && "Logistics matter. Local sourcing reduces transport GWP."}
-                    {stage === STAGES.OPERATION && "Energy efficiency determines 60 years of operational carbon."}
-                    {stage === STAGES.END_OF_LIFE && "Will this building be a resource or waste?"}
-                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {OPTIONS[stage].map((opt) => (
                     <button
                       key={opt.id}
                       onClick={() => handleChoice(stage, opt)}
                       disabled={budget < opt.cost}
-                      className={`group flex flex-col p-6 rounded-2xl border text-left transition-all relative overflow-hidden ${
+                      className={`group flex flex-col p-8 rounded-3xl border text-left transition-all relative overflow-hidden ${
                         budget < opt.cost 
                           ? 'opacity-40 grayscale cursor-not-allowed border-slate-800' 
-                          : 'bg-slate-900 border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/50 shadow-2xl'
+                          : 'bg-slate-800/40 border-slate-700 hover:border-emerald-500/50 hover:bg-slate-700/50 shadow-2xl'
                       }`}
                     >
-                      <div className="flex items-center gap-4 mb-4">
-                        <span className="text-5xl group-hover:scale-110 transition-transform">{opt.icon}</span>
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="p-4 bg-slate-900/80 rounded-2xl text-3xl">
+                          {opt.icon}
+                        </div>
                         <div>
-                          <h3 className="font-bold text-xl text-white">{opt.name}</h3>
-                          <span className="text-emerald-400 font-mono text-sm tracking-tighter">
+                          <h3 className="font-black text-xl text-white">{opt.name}</h3>
+                          <span className="text-emerald-400 font-mono font-bold">
                             ${opt.cost.toLocaleString()}
                           </span>
                         </div>
                       </div>
                       
-                      <p className="text-sm text-slate-400 mb-6 leading-relaxed flex-1">
+                      <p className="text-slate-400 text-sm mb-8 leading-relaxed flex-1">
                         {opt.description}
                       </p>
 
-                      <div className="flex flex-wrap gap-3 mt-auto pt-4 border-t border-slate-800/50">
+                      <div className="flex flex-wrap gap-3 pt-6 border-t border-slate-700/50">
                         {opt.embodied !== undefined && (
-                          <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-tight ${opt.embodied <= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
-                            Embodied: {opt.embodied > 0 ? '+' : ''}{opt.embodied.toLocaleString()} kg
+                          <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight ${opt.embodied <= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                            {opt.embodied <= 0 ? 'Sequestration' : 'Impact'}: {opt.embodied.toLocaleString()} kg
                           </div>
                         )}
                         {opt.opsAnnual !== undefined && (
-                          <div className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-tight bg-yellow-500/10 text-yellow-500">
-                            Ops: {opt.opsAnnual.toLocaleString()} kg/yr
+                          <div className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight bg-yellow-500/10 text-yellow-500">
+                            Operational: {opt.opsAnnual.toLocaleString()} kg/yr
                           </div>
                         )}
                         {opt.recovery > 0 && (
-                          <div className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-tight bg-purple-500/10 text-purple-400">
-                            Circularity: {opt.recovery * 100}%
+                          <div className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight bg-purple-500/10 text-purple-400">
+                            Circular Credit: {opt.recovery * 100}%
                           </div>
                         )}
                       </div>
@@ -306,105 +291,107 @@ const App = () => {
             )}
 
             {stage === STAGES.RESULTS && (
-              <div className="bg-slate-900 p-10 rounded-3xl border border-slate-800 shadow-2xl space-y-10 animate-in zoom-in-95 duration-500">
-                <div className="flex flex-col md:flex-row items-center gap-8 border-b border-slate-800 pb-10">
-                  <div className="text-8xl p-6 bg-slate-950 rounded-full border border-slate-800 shadow-inner">
+              <div className="bg-slate-800/40 border border-slate-700 p-12 rounded-3xl shadow-2xl space-y-12 animate-in zoom-in-95 duration-700">
+                <div className="flex flex-col md:flex-row items-center gap-12 border-b border-slate-700 pb-12">
+                  <div className="text-9xl drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                     {getRank().medal}
                   </div>
-                  <div className="text-center md:text-left">
-                    <h2 className={`text-5xl font-black mb-2 ${getRank().color}`}>
+                  <div className="text-center md:text-left space-y-2">
+                    <h2 className={`text-6xl font-black ${getRank().color}`}>
                       {getRank().title}
                     </h2>
-                    <p className="text-slate-400 text-lg max-w-md">
-                      {getRank().desc}
+                    <p className="text-slate-400 text-xl font-medium">
+                      Project: {choices.PRODUCT?.name} Urban Hub
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <h4 className="text-[10px] uppercase font-black text-slate-500 tracking-[0.2em]">Environmental Impact Breakdown</h4>
-                    <div className="space-y-4 font-mono">
-                      <div className="flex justify-between items-end border-b border-slate-800 pb-2">
-                        <span className="text-slate-500 text-xs">Total A1-A5 (Embodied)</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  <div className="space-y-8">
+                    <h4 className="text-[10px] uppercase font-black text-slate-500 tracking-[0.3em]">Cumulative Lifecycle Carbon</h4>
+                    <div className="space-y-5 font-mono">
+                      <div className="flex justify-between items-end border-b border-slate-700 pb-2">
+                        <span className="text-slate-500 text-xs">Embodied (A1-A5)</span>
                         <span className="text-blue-400">{embodiedCarbon.toLocaleString()} kg</span>
                       </div>
-                      <div className="flex justify-between items-end border-b border-slate-800 pb-2">
-                        <span className="text-slate-500 text-xs">Total B6 (Ops 60yrs)</span>
+                      <div className="flex justify-between items-end border-b border-slate-700 pb-2">
+                        <span className="text-slate-500 text-xs">Operational (B6 - 60yr)</span>
                         <span className="text-yellow-500">{(opsCarbonAnnual * 60).toLocaleString()} kg</span>
                       </div>
                       {choices.END_OF_LIFE?.recovery > 0 && (
-                        <div className="flex justify-between items-end border-b border-slate-800 pb-2 text-emerald-400">
-                          <span className="text-xs">Module D (Circular Credits)</span>
-                          <span>-{Math.round(embodiedCarbon * choices.END_OF_LIFE.recovery * 0.5).toLocaleString()} kg</span>
+                        <div className="flex justify-between items-end border-b border-slate-700 pb-2 text-emerald-400 font-bold">
+                          <span className="text-xs">Module D Circular Recovery</span>
+                          <span>-{Math.round(embodiedCarbon * choices.END_OF_LIFE.recovery * 0.4).toLocaleString()} kg</span>
                         </div>
                       )}
-                      <div className="flex justify-between items-center pt-2 text-2xl font-black text-white">
-                        <span className="text-sm">Final LCA Score:</span>
-                        <span>{totalCarbon.toLocaleString()} <span className="text-xs">kgCO₂e</span></span>
+                      <div className="flex justify-between items-center pt-4 text-4xl font-black text-white">
+                        <span className="text-xs text-slate-500 uppercase tracking-widest">Final GWP Score</span>
+                        <span>{totalCarbon.toLocaleString()} <span className="text-sm font-normal text-slate-500">kgCO₂e</span></span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 flex flex-col justify-center text-center space-y-4">
-                    <h4 className="text-[10px] uppercase font-black text-slate-500 tracking-[0.2em]">Architect's Summary</h4>
-                    <p className="text-sm text-slate-400 italic">
-                      "By selecting {choices.DESIGN?.name} and {choices.OPERATION?.name}, you've defined the city's skyline for the next century."
-                    </p>
-                    <div className="pt-4">
-                      <button 
-                        onClick={restart}
-                        className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-700"
-                      >
-                        <RefreshCcw size={18}/> Re-Audit Project
-                      </button>
+                  <div className="bg-slate-900/60 p-8 rounded-3xl border border-slate-700 flex flex-col justify-center text-center space-y-6">
+                    <div className="space-y-2">
+                      <h4 className="text-[10px] uppercase font-black text-slate-500 tracking-[0.2em]">Financial Performance</h4>
+                      <p className="text-2xl font-bold text-white">${budget.toLocaleString()} <span className="text-xs text-slate-500">Under Budget</span></p>
                     </div>
+                    <p className="text-sm text-slate-400 italic px-4">
+                      "By prioritizing {choices.PRODUCT?.name} and {choices.END_OF_LIFE?.name}, you have shifted the paradigm of urban construction."
+                    </p>
+                    <button 
+                      onClick={reset}
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 border border-slate-600 shadow-xl"
+                    >
+                      <RefreshCcw size={20}/> Start New Audit
+                    </button>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* LCA HUD / Side Column */}
+          {/* Sidebar Analytics */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl sticky top-8">
-              <h3 className="text-[10px] font-black uppercase text-slate-500 mb-6 flex items-center gap-2">
-                <Info size={14} className="text-blue-500"/> LCA Analyst Feed
+            <div className="bg-slate-800/30 border border-slate-700 p-8 rounded-3xl sticky top-8 backdrop-blur-md">
+              <h3 className="text-[10px] font-black uppercase text-slate-500 mb-8 flex items-center gap-2 tracking-[0.2em]">
+                <Info size={14} className="text-emerald-500"/> Real-time LCA Analytics
               </h3>
               
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
-                    <span>Embodied Risk</span>
+              <div className="space-y-10">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase">
+                    <span>Embodied Debt (A)</span>
                     <span className="text-blue-400">{Math.round(Math.min(100, (embodiedCarbon / 600000) * 100))}%</span>
                   </div>
-                  <div className="h-1.5 bg-slate-800 rounded-full">
+                  <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-blue-500 rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
+                      className="h-full bg-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
                       style={{ width: `${Math.min(100, (embodiedCarbon / 600000) * 100)}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
-                    <span>Operation Drag</span>
-                    <span className="text-yellow-500">{Math.round(Math.min(100, (opsCarbonAnnual / 20000) * 100))}%</span>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase">
+                    <span>Operation Drag (B)</span>
+                    <span className="text-yellow-500">{Math.round(Math.min(100, (opsCarbonAnnual / 25000) * 100))}%</span>
                   </div>
-                  <div className="h-1.5 bg-slate-800 rounded-full">
+                  <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-yellow-500 rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(234,179,8,0.5)]" 
-                      style={{ width: `${Math.min(100, (opsCarbonAnnual / 20000) * 100)}%` }}
+                      className="h-full bg-yellow-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(234,179,8,0.3)]" 
+                      style={{ width: `${Math.min(100, (opsCarbonAnnual / 25000) * 100)}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-slate-800">
-                  <h4 className="text-[9px] font-black uppercase text-slate-600 mb-4">Site Log</h4>
-                  <div className="space-y-3">
+                <div className="pt-8 border-t border-slate-700">
+                  <h4 className="text-[9px] font-black uppercase text-slate-600 mb-6 tracking-widest">Decision Stream</h4>
+                  <div className="space-y-4">
                     {log.map((entry, i) => (
-                      <div key={i} className={`text-[11px] leading-tight ${i === 0 ? 'text-slate-200' : 'text-slate-600'}`}>
-                        • {entry}
+                      <div key={i} className={`flex gap-3 text-xs leading-tight ${i === 0 ? 'text-slate-200' : 'text-slate-600'}`}>
+                        <CheckCircle2 size={14} className={i === 0 ? "text-emerald-500 shrink-0" : "text-slate-700 shrink-0"} />
+                        {entry}
                       </div>
                     ))}
                   </div>
@@ -412,17 +399,18 @@ const App = () => {
               </div>
             </div>
             
-            <div className="bg-emerald-500/5 border border-emerald-500/20 p-5 rounded-2xl">
-              <p className="text-[11px] text-emerald-400/80 leading-relaxed italic">
-                Pro Tip: A1-A3 carbon is released before the building even opens. Phase D recovery reduces the total impact of your building over its entire 60-year life.
+            <div className="bg-emerald-500/5 border border-emerald-500/20 p-6 rounded-3xl">
+              <h5 className="text-[10px] font-black text-emerald-500 uppercase mb-2">Architect's Tip</h5>
+              <p className="text-[11px] text-emerald-400/70 leading-relaxed italic">
+                "High embodied carbon (A1-A3) happens before day one. Focus on CLT or recycled steel to drastically cut your carbon debt at the project's inception."
               </p>
             </div>
           </div>
 
         </main>
         
-        <footer className="mt-16 text-center text-slate-600 text-[10px] tracking-widest uppercase py-10 border-t border-slate-900">
-          Global Warming Potential Assessment • Building Life-Cycle Standard ISO 14040/44
+        <footer className="mt-20 text-center text-slate-600 text-[10px] tracking-[0.4em] uppercase py-12 border-t border-slate-900">
+          Building Life-Cycle Standards • ISO 14040/44 Compliant Logic
         </footer>
       </div>
     </div>
